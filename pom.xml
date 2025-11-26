@@ -101,6 +101,7 @@
     <module>sql/connect/common</module>
     <module>sql/connect/client/jdbc</module>
     <module>sql/connect/client/jvm</module>
+    <module>sql/connect/udf</module>
     <module>assembly</module>
     <module>examples</module>
     <module>repl</module>

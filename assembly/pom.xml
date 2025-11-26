@@ -251,6 +251,20 @@
               </arguments>
             </configuration>
           </execution>
+          <execution>
+            <id>copy-connect-client-udf-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>cp</executable>
+              <arguments>
+                <argument>${basedir}/../sql/connect/udf/target/spark-connect-udf_${scala.binary.version}-${project.version}.jar</argument>
+                <argument>${basedir}/target/scala-${scala.binary.version}/jars/connect-repl</argument>
+              </arguments>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>
