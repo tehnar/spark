@@ -24,14 +24,10 @@ import org.apache.spark.sql.functions.{col, udf}
  * End-to-end tests for TaskContext usage in Spark Connect UDFs.
  *
  * These tests verify that:
- * 1. UDFs compiled against the connect-udf TaskContext API work correctly
- * 2. The TaskContext from connect-udf is binary compatible with core TaskContext
- * 3. TaskContext methods can be called inside UDFs executed via Spark Connect
+ *   1. UDFs compiled against the connect-udf TaskContext API work correctly
+ *   2. TaskContext methods can be called inside UDFs executed via Spark Connect
  */
-class TaskContextE2ETestSuite
-    extends ConnectFunSuite
-    with RemoteSparkSession
-    with SQLHelper {
+class TaskContextE2ETestSuite extends ConnectFunSuite with RemoteSparkSession with SQLHelper {
 
   test("TaskContext.get() returns a valid context in UDF") {
     val getTaskInfo = udf((_: Long) => {
@@ -41,7 +37,8 @@ class TaskContextE2ETestSuite
     })
 
     // Use range with explicit partitions to ensure multi-partition execution
-    val result = spark.range(0, 100, 1, 4)
+    val result = spark
+      .range(0, 100, 1, 4)
       .select(getTaskInfo(col("id")))
       .collect()
       .map(_.getString(0))
@@ -58,7 +55,8 @@ class TaskContextE2ETestSuite
       s"stage=${tc.stageId()},stageAttempt=${tc.stageAttemptNumber()}"
     })
 
-    val result = spark.range(0, 50, 1, 2)
+    val result = spark
+      .range(0, 50, 1, 2)
       .withColumn("stage_info", getStageInfo(col("id")))
       .select("stage_info")
       .collect()
@@ -73,46 +71,45 @@ class TaskContextE2ETestSuite
 
   test("TaskContext.getLocalProperty()") {
 
-    val getProperty = (key: String) => udf((_: Long) => {
-      val tc = TaskContext.get()
-      val prop = tc.getLocalProperty(key)
-      if (prop == null) s"null" else prop
-    })
+    val getProperty = (key: String) =>
+      udf((_: Long) => {
+        val tc = TaskContext.get()
+        val prop = tc.getLocalProperty(key)
+        if (prop == null) s"null" else prop
+      })
     spark.addTag("myTag")
 
     val getNonExistentProp = getProperty("nonexistent.key")
     val getJobTag = getProperty("spark.job.tags")
 
-
-    val nullResult = spark.range(0, 50, 1, 2)
+    val nullResult = spark
+      .range(0, 50, 1, 2)
       .select(getNonExistentProp(col("id")))
       .collect()
       .map(_.getString(0))
 
-    val tagResult = spark.range(0, 50, 1, 2)
+    val tagResult = spark
+      .range(0, 50, 1, 2)
       .select(getJobTag(col("id")))
       .collect()
       .map(_.getString(0))
 
-    assert(nullResult.forall(_.startsWith("null")),
-      "Should return null for nonexistent property")
+    assert(nullResult.forall(_.startsWith("null")), "Should return null for nonexistent property")
 //    throw new RuntimeException(tagResult.mkStrin  g("Array(", ", ", ")"))
-    assert(tagResult.forall(_.contains("myTag")),
-      "Job tag property should be present")
+    assert(tagResult.forall(_.contains("myTag")), "Job tag property should be present")
   }
 
   test("TaskContext.addTaskCompletionListener works in UDF") {
     val addListener = udf((_: Long) => {
       val tc = TaskContext.get()
-      tc.addTaskCompletionListener(
-        new org.apache.spark.util.TaskCompletionListener {
-          override def onTaskCompletion(context: TaskContext): Unit = {
-          }
-        })
+      tc.addTaskCompletionListener(new org.apache.spark.util.TaskCompletionListener {
+        override def onTaskCompletion(context: TaskContext): Unit = {}
+      })
       "ok"
     })
 
-    val result = spark.range(0, 1, 1, 1)
+    val result = spark
+      .range(0, 1, 1, 1)
       .select(addListener(col("id")))
       .collect()
 
@@ -127,7 +124,8 @@ class TaskContextE2ETestSuite
       resources.size
     })
 
-    val result = spark.range(0, 50, 1, 2)
+    val result = spark
+      .range(0, 50, 1, 2)
       .select(getResourcesSize(col("id")))
       .collect()
       .map(_.getInt(0))
