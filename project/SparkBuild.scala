@@ -54,8 +54,8 @@ object BuildCommons {
   val streamingProjects@Seq(streaming, streamingKafka010) =
     Seq("streaming", "streaming-kafka-0-10").map(ProjectRef(buildLocation, _))
 
-  val connectProjects@Seq(connectCommon, connect, connectJdbc, connectClient, connectShims) =
-    Seq("connect-common", "connect", "connect-client-jdbc", "connect-client-jvm", "connect-shims")
+  val connectProjects@Seq(connectCommon, connect, connectJdbc, connectClient, connectUdf, connectShims) =
+    Seq("connect-common", "connect", "connect-client-jdbc", "connect-client-jvm", "connect-udf", "connect-shims")
       .map(ProjectRef(buildLocation, _))
 
   val allProjects@Seq(
@@ -403,7 +403,7 @@ object SparkBuild extends PomBuild {
     Seq(
       spark, hive, hiveThriftServer, repl, networkCommon, networkShuffle, networkYarn,
       unsafe, tags, tokenProviderKafka010, sqlKafka010, pipelines, connectCommon, connect,
-      connectJdbc, connectClient, variant, connectShims, profiler, commonUtilsJava
+      connectJdbc, connectClient, connectUdf, variant, connectShims, profiler, commonUtilsJava
     ).contains(x)
   }
 
@@ -1711,7 +1711,15 @@ object CopyDependencies {
                 Files.copy(f.toPath, destFile, StandardCopyOption.REPLACE_EXISTING)
               }
             }
-          }.dependsOn(LocalProject("connect-client-jvm") / assembly)
+
+            // Copy the spark-connect-udf jar for TaskContext support in UDFs
+            val sourceUdfJar = Paths.get(
+              BuildCommons.sparkHome.getAbsolutePath, "sql", "connect", "udf", "target",
+              s"scala-$scalaBinaryVer", s"spark-connect-udf_${scalaBinaryVer}-$sparkVer.jar")
+            val destUdfJar = Paths.get(destDir.toString, s"spark-connect-udf_${scalaBinaryVer}-$sparkVer.jar")
+            Files.copy(sourceUdfJar, destUdfJar, StandardCopyOption.REPLACE_EXISTING)
+            ()
+          }.dependsOn(LocalProject("connect-client-jvm") / assembly, LocalProject("connect-udf") / Compile / packageBin)
         } else {
           Def.task {}
         }

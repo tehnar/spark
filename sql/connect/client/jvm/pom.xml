@@ -156,6 +156,18 @@
       <version>${mima.version}</version>
       <scope>test</scope>
     </dependency>
+    <!--
+    For TaskContext tests. Not a compile-time dependency to avoid possible conflicts with
+    spark core. This dependency has to be included in compile time only if:
+    - you need to access TaskContext from UDFs
+    - you don't depend on spark core
+     -->
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-connect-udf_${scala.binary.version}</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <outputDirectory>target/scala-${scala.binary.version}/classes</outputDirectory>

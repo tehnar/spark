@@ -6450,6 +6450,11 @@
         "message" : [
           "Access to the SparkContext."
         ]
+      },
+      "TASK_CONTEXT" : {
+        "message" : [
+          "Access to TaskContext outside of UDF execution."
+        ]
       }
     },
     "sqlState" : "0A000"
