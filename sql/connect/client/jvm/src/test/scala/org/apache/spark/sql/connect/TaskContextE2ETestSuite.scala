@@ -95,7 +95,6 @@ class TaskContextE2ETestSuite extends ConnectFunSuite with RemoteSparkSession wi
       .map(_.getString(0))
 
     assert(nullResult.forall(_.startsWith("null")), "Should return null for nonexistent property")
-//    throw new RuntimeException(tagResult.mkStrin  g("Array(", ", ", ")"))
     assert(tagResult.forall(_.contains("myTag")), "Job tag property should be present")
   }
 

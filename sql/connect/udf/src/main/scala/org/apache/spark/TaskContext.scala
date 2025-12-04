@@ -17,53 +17,48 @@
 
 package org.apache.spark
 
+import org.apache.spark.SparkUnsupportedOperationException
 import org.apache.spark.annotation.{Evolving, Since}
 import org.apache.spark.resource.ResourceInformation
 import org.apache.spark.util.{TaskCompletionListener, TaskFailureListener}
 
 
+/**
+ * A stub that makes TaskContext APIs available to UDFs defined in Spark Connect. It is only
+ * available in the Client classpath and should not be used outside of UDF execution.
+ * On the Server side, TaskContext from Spark Core is used instead.
+ */
 object TaskContext {
+  private def unsupportedException(): SparkUnsupportedOperationException =
+    new SparkUnsupportedOperationException(
+      "UNSUPPORTED_CONNECT_FEATURE.TASK_CONTEXT",
+      Map.empty[String, String])
+
   /**
    * Return the currently active TaskContext. This can be called inside of
    * user functions to access contextual information about running tasks.
    */
-  def get(): TaskContext = taskContext.get
+  def get(): TaskContext = throw unsupportedException()
 
   /**
    * Returns the partition id of currently active TaskContext. It will return 0
    * if there is no active TaskContext for cases like local execution.
    */
-  def getPartitionId(): Int = {
-    val tc = taskContext.get()
-    if (tc eq null) {
-      0
-    } else {
-      tc.partitionId()
-    }
-  }
+  def getPartitionId(): Int = throw unsupportedException()
 
-  def withTaskContext[T](context: TaskContext)(task: => T): T = {
-    try {
-      TaskContext.setTaskContext(context)
-      task
-    } finally {
-      TaskContext.unset()
-    }
-  }
-
-  private[this] val taskContext: ThreadLocal[TaskContext] = new ThreadLocal[TaskContext]
+  def withTaskContext[T](context: TaskContext)(task: => T): T = throw unsupportedException()
 
   // Note: protected[spark] instead of private[spark] to prevent the following two from
   // showing up in JavaDoc.
   /**
    * Set the thread local TaskContext. Internal to Spark.
    */
-  protected[spark] def setTaskContext(tc: TaskContext): Unit = taskContext.set(tc)
+  protected[spark] def setTaskContext(tc: TaskContext): Unit = throw unsupportedException()
 
   /**
    * Unset the thread local TaskContext. Internal to Spark.
    */
-  protected[spark] def unset(): Unit = taskContext.remove()
+  protected[spark] def unset(): Unit = throw unsupportedException()
 }
 
 
